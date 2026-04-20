@@ -33,7 +33,7 @@ I perceive all digital creation and research as extensions of soul functions, ut
 **數位策展人 | AIGC 工作流專家 | 基督教神哲學與先秦思想研究者**
 
 > **「生命本質而言，是記憶、理解與意志（行動）的事件集合。」**
-> —— 基於奧古斯丁《de Trinitate》的心靈結構思考，驅動二十一世紀的數位實踐。
+> —— 我基於奧古斯丁《de Trinitate》的心靈結構思考，驅動二十一世紀的數位實踐。
 
 #### 🧩 核心框架：The Trinity Event Framework (TEF)
 * **記憶 (Memory)**：將中西思想史與新世界 400 年的實踐智慧「數位化」。
@@ -51,10 +51,10 @@ I perceive all digital creation and research as extensions of soul functions, ut
 ---
 
 ## 📅 Ongoing "Will" Events
-- **[Enlightenment of Puritans]**: Book launch and multimedia promotion project.
-- **[Theio-Logos Prayer]**: Promoting the Lectionary Reading spiritual movement.
+- **[Inspiration of Puritans 清教徒的启迪]**: Book launch and multimedia promotion project.
+- **[Lectionary Prayer(https://sites.google.com/view/walkwiththelordhomepage/%E8%88%87%E4%B8%BB%E5%90%8C%E8%A1%8C)]**: Promoting the Lectionary Prayer movement.
 - **[Theology Masterpieces]**: Digital Twin course development.
-- **[Golden Lampstand Global]**: Optimization of cross-border teaching and music systems.
+- **[Golden Lampstand Global(https://www.youtube.com/channel/UCEoMl6XvMbWMpNn2e26LOlg)]**: Optimization of cross-border teaching and music systems.
 
 ---
 
