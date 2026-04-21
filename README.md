@@ -1,4 +1,4 @@
-# 👋 Hello, I'm Abraham (AbrahamChan1965)
+# 👋 Hello, I'm Abraham 
 ### Digital Curator | AIGC Workflow Expert | Researcher of Christian Philosophy & Classical Chinese Thought
 
 > **"At its essence, life is a collection of events comprising Memory, Understanding, and Will (Action)."**
