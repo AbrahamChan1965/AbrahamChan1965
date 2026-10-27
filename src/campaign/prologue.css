@@ -2143,3 +2143,10 @@ button:disabled {
   min-width: 44px;
 }
 .forecast-toggle { min-height: 44px; }
+
+.scene-navigation { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px 22px; margin:0 0 24px; border:1px solid #9b9567; border-radius:7px; background:linear-gradient(110deg,#304438,#1c3435); }
+.scene-navigation strong {display:block; font-size:17px; color:#e0d7b5; line-height:1.8; margin-top:5px; }
+.scene-navigation p {font-size:13px; color:#abc1aa; margin:7px 0 0; line-height:1.8;}
+.scene-navigation-actions {display:flex;gap:10px;flex:none;flex-wrap:wrap;}
+.scene-navigation button {min-height:46px;min-width:100px;font-size:15px;}
+@media(max-width:700px) { .scene-navigation {flex-direction:column;align-items:stretch;padding:17px;gap:15px;} .scene-navigation-actions button {flex:1;} .scene-navigation strong {font-size:16px;} }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { freshGame, step, recover, same, distance, tileAt, patrolAt, PATROLS, HOUSEHOLDS, SHELTER, EXIT, availableInteraction, planRoute, type Action, type Direction, type Point, type GameState } from './game/engine';
 import { readSave, writeSave, decodeSave, SAVE_KEY } from './game/save';
 import { NightAudio } from './game/audio';
@@ -12,9 +12,9 @@ function hasSave() { try { return !!decodeSave(localStorage.getItem(SAVE_KEY)); 
 const directionNames: Record<Direction, string> = { up: '向上移动', down: '向下移动', left: '向左移动', right: '向右移动' };
 const directionArrows: Record<Direction, string> = { up: '↑', down: '↓', left: '←', right: '→' };
 
-export default function App({ onContinue, onComplete, onCampaign }: { onContinue?: (state: GameState) => void; onComplete?: (state: GameState) => void; onCampaign?: () => void } = {}) {
-  const [state, setState] = useState(readSave);
-  const [panel, setPanel] = useState<Panel>(() => hasSave() ? null : 'intro');
+export default function App({ onContinue, onComplete, onCampaign, navigation, initialState }: { navigation?: (state: GameState) => ReactNode; initialState?: GameState; onContinue?: (state: GameState) => void; onComplete?: (state: GameState) => void; onCampaign?: (state: GameState) => void } = {}) {
+  const [state, setState] = useState(() => initialState ?? readSave());
+  const [panel, setPanel] = useState<Panel>(() => initialState || hasSave() ? null : 'intro');
   const [forecast, setForecast] = useState(true);
   const [saved, setSaved] = useState(true);
   const [sound, setSound] = useState(false);
@@ -73,6 +73,7 @@ export default function App({ onContinue, onComplete, onCampaign }: { onContinue
     </header>
 
     <main id="main">
+      {navigation?.(state)}
       <div className="chapter-header">
         <div><p className="eyebrow"><span className="gold-rule" /> 第一幕 · 道路上的福音 <span className="chapter-number">/ 04</span></p><h1>{chapter.title}</h1><p className="subtitle">{chapter.subtitle}</p></div>
         <div className="chapter-stamp"><span className="moon" aria-hidden="true">☾</span><span>马其顿 · 深夜<small>使徒行传 17:5–10</small></span></div>
@@ -124,10 +125,10 @@ export default function App({ onContinue, onComplete, onCampaign }: { onContinue
         </aside>
         <section className={`event-panel ${state.status === 'caught' ? 'caught' : ''}`} aria-label="夜行记录"><div><p className="eyebrow">{state.status === 'caught' ? '暂时受阻 · 可以重来' : '夜行记录'}</p><p aria-live="polite" data-testid="latest-event">{state.events.at(-1)}</p>{state.status === 'caught' && <button className="primary" onClick={() => { setState(recover(state)); setHint(''); }}>从最近接应点重试 ↻</button>}</div><span className="record-symbol" aria-hidden="true">{state.status === 'caught' ? '↻' : '✧'}</span></section>
       </div>}
-      <footer className="game-footer"><span className={saved ? '' : 'save-warning'}>{saved ? '◌ 进度自动保存在此浏览器' : '存储不可用，请勿关闭本页；当前仍可继续玩。'}</span><div>{onCampaign && <button onClick={onCampaign}>前传旅程与记忆</button>}<button onClick={() => setReduced(!reduced)} aria-pressed={reduced}>{reduced ? '✓ 减少动态' : '减少动态'}</button><button onClick={() => setPanel('restart')}>重新开始</button><span>可玩前传 · 03</span></div></footer>
+      <footer className="game-footer"><span className={saved ? '' : 'save-warning'}>{saved ? '◌ 进度自动保存在此浏览器' : '存储不可用，请勿关闭本页；当前仍可继续玩。'}</span><div>{onCampaign && <button onClick={() => onCampaign(state)}>前传旅程与记忆</button>}<button onClick={() => setReduced(!reduced)} aria-pressed={reduced}>{reduced ? '✓ 减少动态' : '减少动态'}</button><button onClick={() => setPanel('restart')}>重新开始</button><span>可玩前传 · 03</span></div></footer>
     </main>
 
-    {panel === 'intro' && <Dialog title={chapter.title} onClose={() => setPanel(null)} wide><p className="intro-lead">{chapter.subtitle}</p><p>{chapter.intro}</p><div className="intro-rules"><div><span>01</span><strong>观察，再行动</strong><p>每次走一格。巡查按固定路线移动，金色标记预告下一回合。没有实时倒计时。</p></div><div><span>02</span><strong>在路上留下托付</strong><p>到两户人家脚下按「联络」。到紫色院落互动，可保存一个重试点。</p></div><div><span>03</span><strong>离开之后，再看一眼</strong><p>抵达右上角接应点。宣教者离城是固定事件，你的托付会改变虚构家庭的后续。</p></div></div><p className="fiction-note">保罗与西拉夜往庇哩亚：经文明载。你的角色、巡查、地图与家庭：创作虚构。没有信心、恩典或圣灵能力分数。</p><button className="primary large" onClick={() => setPanel(null)}>进入街巷 <span>→</span></button><p className="intro-footnote">约 5–10 分钟 · 键盘 / 触控 · 无需账号</p></Dialog>}
+    {panel === 'intro' && <Dialog title={chapter.title} onClose={() => setPanel(null)} wide><p className="intro-lead">{chapter.subtitle}</p><p>{chapter.intro}</p><div className="intro-rules"><div><span>01</span><strong>观察，再行动</strong><p>每次走一格。巡查按固定路线移动，金色标记预告下一回合。没有实时倒计时。</p></div><div><span>02</span><strong>在路上留下托付</strong><p>到两户人家脚下按「联络」。到紫色院落互动，可保存一个重试点。</p></div><div><span>03</span><strong>离开之后，再看一眼</strong><p>抵达右上角接应点。宣教者离城是固定事件，你的托付会改变虚构家庭的后续。</p></div></div><p className="fiction-note">保罗与西拉夜往庇哩亚：经文明载。你的角色、巡查、地图与家庭：创作虚构。没有信心、恩典或圣灵能力分数。</p><button className="primary large" onClick={() => setPanel(null)}>进入街巷 <span>→</span></button>{onCampaign && <button onClick={() => { setPanel(null); onCampaign(state); }}>先选择一个场景玩</button>}<p className="intro-footnote">约 5–10 分钟 · 键盘 / 触控 · 无需账号</p></Dialog>}
 
     {panel === 'journal' && <Dialog title="经文手记" onClose={() => setPanel(null)} wide><p>经文始终开放，无需收集或答题解锁。以下为内容概述与章节索引，并非逐字引用某一译本。</p><div className="journal-list">{references.map(r => <article key={r.ref}><span className="evidence-tag">{evidenceLabels[r.level]}</span><h3>{r.ref}</h3><p>{r.note}</p></article>)}</div><article className="journal-note"><span className="evidence-tag fiction">创作虚构</span><h3>我们添加了哪些细节？</h3><p>玩家同工、两户人家、具体街巷、巡查、接应记号和家庭联络都是玩法创作。巡查代表本关虚构的街巷压力，不代表某个族群或宗教身份。</p><span className="evidence-tag">历史重建</span><p>夜间街道与院落的视觉意象仅用于氛围，并非帖撒罗尼迦的考古平面复原。本关不建立精确年代，不涉及《帖撒罗尼迦后书》的作者与成书日期争议。</p></article><h3>这次夜行的记录</h3><ol className="event-history">{state.events.map((event, i) => <li key={i}>{event}</li>)}</ol><button className="primary" onClick={() => setPanel(null)}>回到夜路</button></Dialog>}
 

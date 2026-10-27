@@ -212,8 +212,13 @@ async function perform(page: Page, record: StepRecord, mobile: boolean) {
         `^原料 ${action.placement.x + 1}列${action.placement.y + 1}行`,
       ),
     });
-    if (!mobile && before.workshop.order === 0 && piece.id === "a")
+    if (!mobile && before.workshop.order === 0 && piece.id === "a") {
+      // Keep the template and material in the same viewport before a native drag.
+      // The goal/navigation panel increases page height; a cross-viewport drag
+      // can end at a stale coordinate after automatic scrolling.
+      await page.getByRole('region', { name: '工坊制作台', exact: true }).scrollIntoViewIfNeeded();
       await from.dragTo(to);
+    }
     else {
       if (mobile) {
         await from.tap();
@@ -223,6 +228,7 @@ async function perform(page: Page, record: StepRecord, mobile: boolean) {
         await to.click();
       }
     }
+    await expect(to).toHaveText(piece.id.toUpperCase());
   } else if (action.type === "work") {
     const names: Record<string, string> = {
       cut: "量好并裁切 · 2时段",

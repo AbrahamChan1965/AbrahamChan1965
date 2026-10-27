@@ -146,6 +146,7 @@ export function freshCampaign(escape: GameState | null = null): Campaign {
 export type CampaignAction =
   | { type: "escape"; state: GameState }
   | { type: "continue" }
+  | { type: "visit"; chapter: ChapterId }
   | { type: "road"; action: RoadAction }
   | {
       type: "berea-match" | "athens-match" | "memory-match";
@@ -229,11 +230,68 @@ export function canContinue(s: Campaign): boolean {
       return false;
   }
 }
+function enterScene(s: Campaign, chapter: ChapterId) {
+  const firstVisit = !s.flags.includes(`visited:${chapter}`);
+  s.chapter = chapter;
+  if (
+    firstVisit &&
+    chapter === "CH03_BEREA_CRISIS" &&
+    s.berea.phase === "table" &&
+    s.berea.explorer.turn === 0 &&
+    s.road.supports > 0
+  ) {
+    listAdd(s.berea.explorer.found, "companion");
+    listAdd(s.berea.explorer.checkpoint.found, "companion");
+    listAdd(s.flags, "companion-help");
+  }
+  if (
+    firstVisit &&
+    chapter === "CH04_COASTAL_EVACUATION" &&
+    s.coast.approach === 0 &&
+    s.coast.hours === 0
+  )
+    s.coast = createCoast(Math.floor(s.road.fatigue / 3));
+  if (
+    firstVisit &&
+    chapter === "CH06_CORINTH_WORKSHOP" &&
+    s.workshop.day === 1 &&
+    s.workshop.order === 0 &&
+    s.workshop.hours === 6 &&
+    s.workshop.placements.length === 0
+  ) {
+    s.workshop.fatigue = Math.floor(s.coast.fatigue / 3);
+    if (s.coast.route)
+      listAdd(
+        s.flags,
+        s.coast.route === "sea"
+          ? "arrived-by-sea-model"
+          : "arrived-by-land-model",
+      );
+  }
+  listAdd(s.flags, `visited:${chapter}`);
+}
+export function visitChapter(state: Campaign, chapter: ChapterId): Campaign {
+  if (!CHAPTERS.some((c) => c.id === chapter)) return state;
+  const s = structuredClone(state);
+  const previous = s.chapter;
+  if (canContinue(s)) {
+    const info = CHAPTERS.find((c) => c.id === previous)!;
+    listAdd(s.completed, previous);
+    listAdd(s.memories, info.title);
+    listAdd(s.journal, info.ref);
+  }
+  enterScene(s, chapter);
+  return tell(
+    s,
+    `已保存${CHAPTERS.find((c) => c.id === previous)!.title}的当前进度，进入${CHAPTERS.find((c) => c.id === chapter)!.title}。未完成的目标不会自动记为通关，随时可以回来继续。`,
+  );
+}
 export function campaignStep(
   state: Campaign,
   action: CampaignAction,
 ): Campaign {
   if (action.type === "escape") return captureEscape(state, action.state);
+  if (action.type === "visit") return visitChapter(state, action.chapter);
   const s = structuredClone(state);
   if (action.type === "continue") {
     if (!canContinue(s))
@@ -242,26 +300,11 @@ export function campaignStep(
     listAdd(s.completed, s.chapter);
     listAdd(s.memories, CHAPTERS[index].title);
     listAdd(s.journal, CHAPTERS[index].ref);
-    s.chapter = CHAPTERS[index + 1].id;
-    if (s.chapter === "CH03_BEREA_CRISIS") {
-      if (s.road.supports > 0) {
-        s.berea.explorer.found = ["companion"];
-        s.berea.explorer.checkpoint.found = ["companion"];
-        listAdd(s.flags, "companion-help");
-      }
-    }
-    if (s.chapter === "CH04_COASTAL_EVACUATION")
-      s.coast = createCoast(Math.floor(s.road.fatigue / 3));
-    if (s.chapter === "CH06_CORINTH_WORKSHOP") {
-      s.workshop.fatigue = Math.floor(s.coast.fatigue / 3);
-      listAdd(
-        s.flags,
-        s.coast.route === "sea"
-          ? "arrived-by-sea-model"
-          : "arrived-by-land-model",
-      );
-    }
-    if (s.chapter === "EPILOGUE_FIRST_LETTER")
+    enterScene(s, CHAPTERS[index + 1].id);
+    if (
+      s.chapter === "EPILOGUE_FIRST_LETTER" &&
+      CHAPTERS.slice(0, 6).every((c) => s.completed.includes(c.id))
+    )
       listAdd(s.completed, "EPILOGUE_FIRST_LETTER");
     return tell(
       s,

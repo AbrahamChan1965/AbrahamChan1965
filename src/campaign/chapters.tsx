@@ -3,6 +3,7 @@ import { BEREA_MAP, ATHENS_MAP } from "../game/exploration";
 import { ROAD_STAGES, roadStage, type Pace } from "../travel/road";
 import { WINDS } from "../coast/engine";
 import {
+  CHAPTERS,
   BEREA_CARDS,
   BEREA_SLOTS,
   ATHENS_CARDS,
@@ -1085,7 +1086,11 @@ export function Epilogue({
     );
   return (
     <div className="chapter-play epilogue-cinematic">
-      <p className="eyebrow">前传完成 · 从午夜逃亡到第一封信</p>
+      <p className="eyebrow">
+        {CHAPTERS.slice(0, 6).every((c) => state.completed.includes(c.id))
+          ? "前传完成 · 从午夜逃亡到第一封信"
+          : "书信序幕 · 自由体验（前传尚未全部完成）"}
+      </p>
       <div className="recap-track">
         {state.memories.map((m, i) => (
           <span style={{ animationDelay: `${i * 0.12}s` }} key={m}>

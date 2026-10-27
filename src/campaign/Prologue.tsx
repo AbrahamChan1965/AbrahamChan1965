@@ -25,6 +25,11 @@ import { ModernTransfer } from "../ui/ModernTransfer";
 import { NightAudio } from "../game/audio";
 import { WorldMap } from "./WorldMap";
 import "./prologue.css";
+import {
+  SceneNavigation,
+  sceneGoal,
+  type SceneDestination,
+} from "./SceneNavigation";
 
 type Panel = "journey" | "journal" | "modern" | "replay" | null;
 export default function Prologue() {
@@ -38,6 +43,9 @@ export default function Prologue() {
     }
     return loaded;
   });
+  const [nightResume, setNightResume] = useState<GameState | undefined>(
+    undefined,
+  );
   const [panel, setPanel] = useState<Panel>(null),
     [target, setTarget] = useState<ChapterId>("CH01_MIDNIGHT_ESCAPE");
   const [saved, setSaved] = useState(true),
@@ -79,6 +87,7 @@ export default function Prologue() {
       ? replayPrologue(state)
       : replayChapter(state, target);
     if (target === "CH01_MIDNIGHT_ESCAPE" && next.escape) {
+      setNightResume(next.escape);
       writeSave(next.escape);
       setNightKey((v) => v + 1);
     }
@@ -90,14 +99,57 @@ export default function Prologue() {
     dispatch({ type: "continue" });
     window.scrollTo({ top: 0, behavior: "instant" });
   };
+  const switchScene = (destination: SceneDestination, escape?: GameState) => {
+    const base = escape ? captureEscape(state, escape) : state;
+    const chapter =
+      destination === "LIVING_LETTER" ? "EPILOGUE_FIRST_LETTER" : destination;
+    let next = campaignStep(base, { type: "visit", chapter });
+    if (destination === "LIVING_LETTER")
+      next = campaignStep(next, { type: "open-letter" });
+    if (chapter === "CH01_MIDNIGHT_ESCAPE") {
+      setNightResume(next.escape ?? undefined);
+      if (next.escape) writeSave(next.escape);
+      setNightKey((v) => v + 1);
+    }
+    setState(next);
+    setPanel(null);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+  const nextScene = (escape?: GameState) => {
+    if (index < CHAPTERS.length - 1) {
+      switchScene(CHAPTERS[index + 1].id, escape);
+      return;
+    }
+    if (!state.letterOpen) dispatch({ type: "open-letter" });
+    else if (state.letter.phase === "arrival")
+      dispatch({ type: "receive-letter" });
+    else if (state.letter.phase === "reading")
+      dispatch({ type: "read-letter", page: 0 });
+    else setPanel("journey");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
   const night = state.chapter === "CH01_MIDNIGHT_ESCAPE";
   return (
     <>
       {night ? (
         <NightEscape
           key={nightKey}
+          initialState={nightResume}
+          navigation={(escape) => (
+            <SceneNavigation
+              state={{ ...state, escape }}
+              onNext={() => nextScene(escape)}
+              onMenu={() => {
+                setState((previous) => captureEscape(previous, escape));
+                setPanel("journey");
+              }}
+            />
+          )}
           onComplete={completedEscape}
-          onCampaign={() => setPanel("journey")}
+          onCampaign={(escape) => {
+            setState((previous) => captureEscape(previous, escape));
+            setPanel("journey");
+          }}
           onContinue={(escape) => {
             setState((previous) =>
               campaignStep(captureEscape(previous, escape), {
@@ -157,15 +209,17 @@ export default function Prologue() {
                 </span>
               </div>
             </div>
+            <SceneNavigation
+              state={state}
+              onNext={() => nextScene()}
+              onMenu={() => setPanel("journey")}
+            />
             <div className="campaign-progress" aria-label="前传章节进度">
               {CHAPTERS.map((c, i) => (
                 <button
                   key={c.id}
                   aria-current={c.id === state.chapter ? "step" : undefined}
-                  disabled={
-                    c.id !== state.chapter && !state.completed.includes(c.id)
-                  }
-                  onClick={() => c.id !== state.chapter && replay(c.id)}
+                  onClick={() => c.id !== state.chapter && switchScene(c.id)}
                 >
                   <span>{state.completed.includes(c.id) ? "✓" : i + 1}</span>
                   <small>{c.location}</small>
@@ -256,11 +310,8 @@ export default function Prologue() {
             {CHAPTERS.map((c, i) => (
               <button
                 key={c.id}
-                disabled={
-                  !state.completed.includes(c.id) && c.id !== state.chapter
-                }
                 onClick={() =>
-                  c.id === state.chapter ? setPanel(null) : replay(c.id)
+                  c.id === state.chapter ? setPanel(null) : switchScene(c.id)
                 }
               >
                 <span>
@@ -271,14 +322,22 @@ export default function Prologue() {
                   <small>
                     {c.ref} ·{" "}
                     {c.id === state.chapter
-                      ? "当前章节"
+                      ? `当前章节 · ${state.completed.includes(c.id) ? "已完成" : "尚未完成"}`
                       : state.completed.includes(c.id)
-                        ? "可重游"
-                        : "沿主线逐步到达"}
+                        ? "已完成 · 继续／重游"
+                        : "尚未完成 · 可直接体验"}
                   </small>
+                  <small>{sceneGoal({ ...state, chapter: c.id })}</small>
                 </div>
               </button>
             ))}
+            <button onClick={() => switchScene("LIVING_LETTER")}>
+              <span>✉</span>
+              <div>
+                <strong>第二篇：收信与群体生活</strong>
+                <small>可直接进入，前传未完成记录不会被清除。</small>
+              </div>
+            </button>
           </div>
           <button className="primary" onClick={() => setPanel("journal")}>
             查看经文与旅程记忆
