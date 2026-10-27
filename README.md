@@ -66,39 +66,51 @@ I perceive all digital creation and research as extensions of soul functions, ut
 
 ---
 
-## 《道路与书信》可玩原型
+## 《道路与书信：帖撒罗尼迦》· V3.1
 
-已实现第一关 **「午夜逃离帖撒罗尼迦」**：8×7 回合制潜行地图、巡查视线与预告、家庭联络、接应点重试、本地存档，以及离城后的群体叙事。玩家扮演虚构同工；保罗与西拉夜往庇哩亚的经文结局固定。
+**[直接打开游戏](https://abrahamchan1965.github.io/AbrahamChan1965/)**，无需安装、账号或外部AI服务。现已将原夜逃接续为「从午夜逃亡到第一封信」：道路、庇哩亚、海岸、雅典、哥林多工坊、互动终章，以及第二篇收信与第一章照顾任务。
 
-**直接试玩：** 本次交付附有 `release/road-and-letters.html` 单文件版，下载到电脑后用现代浏览器打开即可，无需安装或联网。生成文件不纳入Git；开发者可用 `npm run build:standalone` 重建。手机浏览器通常不能直接运行下载文件，可使用开发服务器提供的页面。文件地址下的本机存档依浏览器支持而定；正式版建议通过HTTP提供页面。
+已有夜逃存档继续有效。完成第一关后，在原结尾点击「前往庇哩亚」。每一步自动保存在当前浏览器，支持中途刷新；「旅程地图」可重游已到达章节，个人反思仍只存本机。
 
-需要 Node.js 22.12+（本环境以 24.19.0 验证）。在仓库根目录运行：
+### 操作
+
+夜逃与探索地图：方向键／WASD或屏幕箭头移动，E调查，空格等待；可点相邻格。经文板与工坊支持拖放，也可先选卡片／裁片，再点目标位置。没有强制实时倒数或快速反应要求。
+
+经文与历史说明随时开放；旅行模型、虚构事件、确切路线不确定性均有标签。不会以信心、恩典、圣洁或圣灵能力评分。三份工坊订单不等于十八个月，完整第二篇仍在发展：第一章已有可玩收信与照顾起点，第二至五章目前为内容导览。
+
+### 开发与验证
+
+Node.js以 `.node-version` 的24.19.0验证。使用现有checkout，无需另建worktree。
 
 ```bash
 npm ci --cache /tmp/road-npm-cache
 npm run dev -- --port 5173 --strictPort
-```
-
-浏览器打开 Vite 输出的地址即可游戏。云端访问方式取决于工作区提供的端口访问功能；本项目未公开部署。也可运行 `npm run build` 后用 `npm run preview` 检查生产包。无需账号、密钥、后端服务或外部 AI API。
-
-操作：方向键 / WASD 或点击相邻格移动；空格等待；E 联络／保存接应点。手机使用屏幕方向按钮。没有实时倒计时。进度和个人反思只保存在当前浏览器；清理浏览器数据会删除它们。
-
-验证命令：
-
-```bash
 npm test
 npm run build
-# 首次使用 Playwright 时安装其浏览器：
-npx playwright install chromium
-npm run test:e2e
-# 本云端环境已有 Chromium，可直接使用：
 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e
-# 用生产包执行同一浏览器流程（先 build）：
 PLAYWRIGHT_TEST_PRODUCTION=1 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e
-# Node 24 下检查单文件版的离线完整流程（先 build:standalone）：
-PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:standalone
 ```
 
-设计与边界：[游戏设计](GAME_DESIGN_BIBLE.md)、[分镜](FULL_STORYBOARD.md)、[玩法规则](MECHANICS_AND_RULES.md)、[经文对照](SCRIPTURE_REFERENCE_MATRIX.md)、[状态结构](SCENE_DATA_SCHEMA.md)、[历史审阅](HISTORICAL_REVIEW.md)、[测试报告](TEST_REPORT.md)。本版只实现这一个小游戏，其余章节尚未制作。
+没有本机Chromium时先运行 `npx playwright install chromium`，再省略可执行文件变量运行测试。测试覆盖桌面与手机模拟，非iOS／Android实机认证。
 
-网页版发布文件位于 `docs/`，通过 `npm run prepare:pages` 重建。GitHub Pages 的来源应选择 `main` 分支的 `/docs` 文件夹，详见 [发布说明](PUBLISHING.md)。
+```bash
+npm run build:standalone
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:standalone
+PLAYWRIGHT_TEST_STANDALONE=1 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e -- e2e/prologue.spec.ts --grep 'continuous prologue'
+npm run prepare:pages
+```
+
+`release/road-and-letters.html`为自包含HTML；`docs/index.html`为GitHub Pages静态入口（main分支的/docs）。受管理Chromium禁止file地址，离线验证由测试路由提供同一HTML，不绕过浏览器政策。工作区文件路径不是已上传附件，不将其冒充下载链接。
+
+### 导演与研究文档
+
+- [前传设计](PROLOGUE_GAME_DESIGN.md)
+- [完整分镜与逐场学习设计表](FULL_PROLOGUE_STORYBOARD.md)
+- [实际玩法规则](MECHANICS_AND_RULES.md)
+- [历史地理与模型边界](HISTORICAL_GEOGRAPHY.md)
+- [经文对照](SCRIPTURE_REFERENCE_MATRIX.md)
+- [状态与旧存档迁移](CAMPAIGN_STATE_SPEC.md)
+- [测试报告](TEST_REPORT.md)
+- [发布方式](PUBLISHING.md)
+
+旧版设计文档保留为历史记录；先前的JOURNEY_TO_CORINTH_DESIGN.md是本次执行指引之前的提案，实际完成范围以本版设计和测试报告为准。GIS参考文章在本环境遭403代理限制；78／40／85公里按导演给出的模型使用，不声称本轮独立复核。时长、教学效果及历史工艺仍需真人与专家评测。

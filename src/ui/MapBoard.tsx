@@ -4,6 +4,7 @@ import { MAP, HOUSEHOLDS, PATROLS, patrolAt, same, type GameState, type Point } 
 
 export function MapBoard({ state, forecast, onTile }: { state: GameState; forecast: boolean; onTile: (p: Point) => void }) {
   const mount = useRef<HTMLDivElement>(null);
+  const viewport = useRef<HTMLDivElement>(null);
   const scene = useRef<import('../game/NightScene').NightScene | null>(null);
   const latest = useRef({ state, forecast });
   latest.current = { state, forecast };
@@ -25,8 +26,16 @@ export function MapBoard({ state, forecast, onTile }: { state: GameState; foreca
     return () => { cancelled = true; scene.current = null; game?.destroy(true); };
   }, []);
   useEffect(() => { scene.current?.updateState(state, forecast); }, [state, forecast]);
+  useEffect(() => {
+    const container = viewport.current;
+    const tile = container?.querySelector('.player-tile');
+    if (!container || !tile) return;
+    const outer = container.getBoundingClientRect(), inner = tile.getBoundingClientRect();
+    if (inner.right > outer.right - 8) container.scrollLeft += inner.right - outer.right + 8;
+    if (inner.left < outer.left + 8) container.scrollLeft -= outer.left - inner.left + 8;
+  }, [state.position.x, state.position.y]);
   const names = { wall: '石墙', street: '街道', alley: '暗巷', shelter: '接应院落', house: '住户', start: '出发点', exit: '城外接应点' };
-  return <div className="board-wrap">
+  return <div className="board-wrap" ref={viewport}>
     <div className="column-markers" aria-hidden="true">{'ABCDEFGH'.split('').map(c => <span key={c}>{c}</span>)}</div>
     <div className="board">
       <div className="phaser-mount" ref={mount} aria-hidden="true" />
@@ -46,6 +55,6 @@ export function MapBoard({ state, forecast, onTile }: { state: GameState; foreca
         }))}
       </div>
     </div>
-    <div className="map-caption"><span>帖撒罗尼迦 · 街巷示意</span><span>创作地图 / 非考古复原</span></div>
+    <div className="map-caption"><span>帖撒罗尼迦 · 街巷示意</span><span>创作地图 · 小屏可左右滑动</span></div>
   </div>;
 }

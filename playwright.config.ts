@@ -3,6 +3,7 @@ const production = process.env.PLAYWRIGHT_TEST_PRODUCTION === '1';
 const port = production ? 4173 : 5173;
 export default defineConfig({
   testDir: './e2e', fullyParallel: false, workers: 1, reporter: 'list',
+  outputDir: process.env.PLAYWRIGHT_TEST_STANDALONE === '1' ? 'test-results/standalone' : production ? 'test-results/production' : 'test-results/development',
   use: { baseURL: `http://127.0.0.1:${port}`, trace: 'retain-on-failure', launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {} },
   projects: [
     { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 1100 } } },
